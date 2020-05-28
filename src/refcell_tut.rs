@@ -1,11 +1,11 @@
 // RefCells can be used to mock tests!!!
 pub mod refcell_tut{
     pub trait Messenger{
-        fn send(&mut self, msg: &str);
+        fn send(&self, msg: &str);
     }
 
     pub struct LimitTracker<'a, T: Messenger>{
-        messenger: &'a mut T,
+        messenger: &'a T,
         value: usize,
         max: usize,
     }
@@ -13,7 +13,7 @@ pub mod refcell_tut{
     impl <'a, T> LimitTracker<'a, T> where
         T: Messenger,
     {
-        pub fn new(messenger: &mut T, max: usize) -> LimitTracker<T>{
+        pub fn new(messenger: &T, max: usize) -> LimitTracker<T>{
             LimitTracker{
                 messenger,
                 max,
@@ -43,7 +43,7 @@ pub mod refcell_tut{
 
 #[cfg(test)]
 mod tests{
-    // use super::*;
+    use super::*;
     use super::refcell_tut::*;
 
     struct MockMessenger{
@@ -59,15 +59,15 @@ mod tests{
     }
 
     impl Messenger for MockMessenger{
-        fn send(&mut self, msg: &str){
+        fn send(&self, msg: &str){
             self.sent_messages.push(String::from(msg));
         }
     }
 
     #[test]
     fn it_sends_75_prct_warning(){
-        let mut mck_msgr = MockMessenger::new();
-        let mut tracker = LimitTracker::new(&mut mck_msgr, 100);
+        let mck_msgr = MockMessenger::new();
+        let mut tracker = LimitTracker::new(&mck_msgr, 100);
         tracker.set_value(75);
         assert_eq!(1, mck_msgr.sent_messages.len());
         // assert_eq!("Warning: You have used over 75% of your quota", mck_msgr.sent_messages[0]);
