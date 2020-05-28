@@ -1,6 +1,9 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
+mod refcell_tut;
+use crate::refcell_tut::*;
+
 /// List data object. Not cool for multiple references though such as 2 linked lists sharing a common tail.
 #[derive(Debug)]
 enum List{
