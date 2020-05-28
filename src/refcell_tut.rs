@@ -45,22 +45,23 @@ pub mod refcell_tut{
 mod tests{
     use super::*;
     use super::refcell_tut::*;
+    use std::cell::RefCell;
 
     struct MockMessenger{
-        sent_messages: Vec<String>,
+        sent_messages: RefCell<Vec<String>>,
     }
 
     impl MockMessenger{
         fn new() -> MockMessenger {
             MockMessenger{
-                sent_messages: Vec::new(),
+                sent_messages: RefCell::new(Vec::new()),
             }
         }
     }
 
     impl Messenger for MockMessenger{
         fn send(&self, msg: &str){
-            self.sent_messages.push(String::from(msg));
+            self.sent_messages.borrow_mut().push(String::from(msg));
         }
     }
 
@@ -69,7 +70,7 @@ mod tests{
         let mck_msgr = MockMessenger::new();
         let mut tracker = LimitTracker::new(&mck_msgr, 100);
         tracker.set_value(75);
-        assert_eq!(1, mck_msgr.sent_messages.len());
+        assert_eq!(1, mck_msgr.sent_messages.borrow().len());
         // assert_eq!("Warning: You have used over 75% of your quota", mck_msgr.sent_messages[0]);
     }
 }
