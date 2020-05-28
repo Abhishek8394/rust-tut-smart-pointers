@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::cell::RefCell;
 use std::ops::Deref;
 
 mod refcell_tut;
@@ -14,6 +15,12 @@ enum List{
 #[derive(Debug)]
 enum RcList{
     Cons(i32, Rc<RcList>),
+    Nil,
+}
+
+#[derive(Debug)]
+enum RRList{
+    Cons(Rc<RefCell<i32>>, Rc<RRList>),
     Nil,
 }
 
@@ -47,6 +54,7 @@ impl Drop for CustomSmartPointer{
 
 use crate::List::{Cons, Nil};
 use crate::RcList::{Cons as RcCons, Nil as RcNil};
+use crate::RRList::{Cons as RRCons, Nil as RRNil};
 
 fn main() {
     let b = Box::new(5);
@@ -124,6 +132,28 @@ Rust does deref coercion when it finds types and trait implementations in three 
             println!("--- leaving c scope ---");
         }
         println!("count a = {}", Rc::strong_count(&a));
+    }
+
+    {
+        println!("Combining power of Rc and RefCell to get multiple mutable owners!");
+        let value = Rc::new(RefCell::new(5));
+
+        println!("value = {:?}", *value);
+
+        let a = Rc::new(RRCons(Rc::clone(&value), Rc::new(RRNil)));
+
+        let b = RRCons(Rc::new(RefCell::new(6)), Rc::clone(&a));
+        let c = RRCons(Rc::new(RefCell::new(10)), Rc::clone(&a));
+
+        println!("b = {:?}", b);
+        println!("c = {:?}", c);
+
+        // *value = Refcell<i32>
+        *value.borrow_mut() += 10;
+
+        println!("After adding 10 to value, b = {:?}", b);
+        println!("After adding 10 to value, c = {:?}", c);
+
     }
 
 }

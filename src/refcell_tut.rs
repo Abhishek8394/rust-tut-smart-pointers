@@ -62,6 +62,14 @@ mod tests{
     impl Messenger for MockMessenger{
         fn send(&self, msg: &str){
             self.sent_messages.borrow_mut().push(String::from(msg));
+            // Refcell imposes at runtime that atmost 1 mutable ref and any num
+            // of immutable ones by keeping counts for each type.
+            // Below snippet will fail at runtime, not compile!
+            // let mut m1 = self.sent_messages.borrow_mut();
+            // let mut m2 = self.sent_messages.borrow_mut();
+
+            // m1.push(String::from(msg));
+            // m2.push(String::from(msg));
         }
     }
 
