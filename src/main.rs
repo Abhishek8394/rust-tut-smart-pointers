@@ -3,26 +3,9 @@ use std::cell::RefCell;
 use std::ops::Deref;
 
 mod refcell_tut;
+mod cons;
+
 use crate::refcell_tut::*;
-
-/// List data object. Not cool for multiple references though such as 2 linked lists sharing a common tail.
-#[derive(Debug)]
-enum List{
-    Cons(i32, Box<List>),
-    Nil,
-}
-
-#[derive(Debug)]
-enum RcList{
-    Cons(i32, Rc<RcList>),
-    Nil,
-}
-
-#[derive(Debug)]
-enum RRList{
-    Cons(Rc<RefCell<i32>>, Rc<RRList>),
-    Nil,
-}
 
 struct MyBox<T>(T);
 
@@ -52,9 +35,9 @@ impl Drop for CustomSmartPointer{
     }
 }
 
-use crate::List::{Cons, Nil};
-use crate::RcList::{Cons as RcCons, Nil as RcNil};
-use crate::RRList::{Cons as RRCons, Nil as RRNil};
+use crate::cons::List::{Cons, Nil};
+use crate::cons::RcList::{Cons as RcCons, Nil as RcNil};
+use crate::cons::RRList::{Cons as RRCons, Nil as RRNil};
 
 fn main() {
     let b = Box::new(5);
