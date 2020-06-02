@@ -4,8 +4,13 @@ use std::ops::Deref;
 
 mod refcell_tut;
 mod cons;
+mod mem_leak;
 
 use crate::refcell_tut::*;
+use crate::cons::List::{Cons, Nil};
+use crate::cons::RcList::{Cons as RcCons, Nil as RcNil};
+use crate::cons::RRList::{Cons as RRCons, Nil as RRNil};
+use crate::mem_leak::List::{Cons as MLCons, Nil as MLNil};
 
 struct MyBox<T>(T);
 
@@ -35,9 +40,8 @@ impl Drop for CustomSmartPointer{
     }
 }
 
-use crate::cons::List::{Cons, Nil};
-use crate::cons::RcList::{Cons as RcCons, Nil as RcNil};
-use crate::cons::RRList::{Cons as RRCons, Nil as RRNil};
+
+
 
 fn main() {
     let b = Box::new(5);
@@ -137,6 +141,28 @@ Rust does deref coercion when it finds types and trait implementations in three 
         println!("After adding 10 to value, b = {:?}", b);
         println!("After adding 10 to value, c = {:?}", c);
 
+    }
+
+    {
+        println!("memory leak example");
+        let a = Rc::new(MLCons(3, RefCell::new(Rc::new(MLNil))));
+        println!("a init count: {}", Rc::strong_count(&a));
+        println!("a tail = {:?}", a.tail());
+        let b = Rc::new(MLCons(10, RefCell::new(Rc::clone(&a))));
+        println!("a ref count after creating b = {}", Rc::strong_count(&a));
+        println!("b init count = {}", Rc::strong_count(&b));
+        println!("b tail = {:?}", b.tail());
+
+        if let Some(link) = a.tail(){
+            println!("Changing a tail point to b now!");
+            *link.borrow_mut() = Rc::clone(&b);
+        }
+
+        println!("a count after changing a = {}", Rc::strong_count(&a));
+        println!("b count after changing a = {}", Rc::strong_count(&b));
+
+        // below will leak and cause stack overflow.
+        // println!("a next item = {:?}", a.tail());
     }
 
 }
