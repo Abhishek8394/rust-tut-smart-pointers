@@ -1,16 +1,20 @@
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use std::ops::Deref;
 
 mod refcell_tut;
 mod cons;
 mod mem_leak;
+mod tree;
+mod banner;
 
 use crate::refcell_tut::*;
 use crate::cons::List::{Cons, Nil};
 use crate::cons::RcList::{Cons as RcCons, Nil as RcNil};
 use crate::cons::RRList::{Cons as RRCons, Nil as RRNil};
 use crate::mem_leak::List::{Cons as MLCons, Nil as MLNil};
+use crate::tree::Node as TreeNode;
+use crate::banner::ScopeBanner;
 
 struct MyBox<T>(T);
 
@@ -163,6 +167,34 @@ Rust does deref coercion when it finds types and trait implementations in three 
 
         // below will leak and cause stack overflow.
         // println!("a next item = {:?}", a.tail());
+    }
+
+    {
+        println!("Tree example");
+        let leaf = Rc::new(TreeNode{
+            value: 3, children: RefCell::new(vec![]),
+            parent: RefCell::new(Weak::new()),
+        });
+
+        println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+        println!("leaf strong = {}, weak = {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
+        {
+            let sb = ScopeBanner::new(String::from("branch scope"));
+            let branch = Rc::new(TreeNode{
+                value: 5, children: RefCell::new(vec![Rc::clone(&leaf)]),
+                parent: RefCell::new(Weak::new()),
+            });
+
+            *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+            println!("branch strong = {}, weak = {}", Rc::strong_count(&branch), Rc::weak_count(&branch));
+            println!("leaf strong = {}, weak = {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
+            println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+            println!("leaving branch scope");
+        }
+        println!("leaf strong = {}, weak = {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
+        println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+
+        // println!("branch: {:?}", *branch);
     }
 
 }
